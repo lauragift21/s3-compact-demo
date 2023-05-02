@@ -1,11 +1,12 @@
 const { S3Client, CreateBucketCommand } = require("@aws-sdk/client-s3");
+require('dotenv').config();
 
 const s3 = new S3Client({
   region: "auto",
-  endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`, // Cloudflare R2 endpoint URL
+  endpoint: `https://${process.env.ACCOUNT_ID}.r2.cloudflarestorage.com`, // Cloudflare R2 endpoint URL
   credentials: {
-    accessKeyId: "",
-    secretAccessKey: ""
+    accessKeyId: process.env.ACCESS_KEY_ID,
+    secretAccessKey: process.env.SECRET_ACCESS_KEY
   }
 })
 
