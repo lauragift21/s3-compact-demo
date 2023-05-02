@@ -25,7 +25,6 @@ const createBucket = async (bucketName) => {
   }
 };
 
-
 const uploadFile = async (bucketName, fileName, fileContent) => {
   console.log(`Uploading file ${fileName} to bucket ${bucketName}`);
   const command = new PutObjectCommand({
