@@ -1,4 +1,4 @@
-const { S3Client, CreateBucketCommand } = require("@aws-sdk/client-s3");
+const { S3Client, CreateBucketCommand, PutObjectCommand } = require("@aws-sdk/client-s3");
 require('dotenv').config();
 
 const s3 = new S3Client({
@@ -8,19 +8,50 @@ const s3 = new S3Client({
     accessKeyId: process.env.ACCESS_KEY_ID,
     secretAccessKey: process.env.SECRET_ACCESS_KEY
   }
-})
+});
 
-const main = async () => {
-  console.log(`Hello I'm a S3 Client`);
-  const command = new CreateBucketCommand({
-    Bucket: 'bucket-name'
-  })
+const createBucket = async (bucketName) => {
+  console.log(`Creating bucket ${bucketName}`);
+  const command = new CreateBucketCommand({ Bucket: bucketName });
   try {
     const { Location } = await s3.send(command);
-    console.log(`Bucket created with location ${Location}`)
+    console.log(`Bucket ${bucketName} created with location ${Location}`);
   } catch (error) {
-    console.error(error)
+    if (error.name === "BucketAlreadyOwnedByYou") {
+      console.log(`Bucket ${bucketName} already exists, skipping creation`);
+    } else {
+      console.error(`Error creating bucket ${bucketName}:`, error);
+    }
   }
-}
+};
 
-module.exports = main();
+
+const uploadFile = async (bucketName, fileName, fileContent) => {
+  console.log(`Uploading file ${fileName} to bucket ${bucketName}`);
+  const command = new PutObjectCommand({
+    Bucket: bucketName,
+    Key: fileName,
+    Body: fileContent
+  });
+  try {
+    const { ETag } = await s3.send(command);
+    console.log(`File ${fileName} uploaded with ETag ${ETag}`);
+  } catch (error) {
+    console.error(`Error uploading file ${fileName} to bucket ${bucketName}:`, error);
+  }
+};
+
+const main = async () => {
+  const bucketName = 's3-demo-bucket';
+  await createBucket(bucketName);
+  await uploadFile(bucketName, 'test.txt', 'Hello World!');
+};
+
+module.exports = {
+  createBucket,
+  uploadFile
+};
+
+if (require.main === module) {
+  main().catch(console.error);
+}
